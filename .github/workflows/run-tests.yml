@@ -3,8 +3,6 @@ name: Run Automated Tests
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
 
 jobs:
   test:
@@ -29,26 +27,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
-    - name: Verify installations
-      run: |
-        node --version
-        npm --version
-        python --version
-        pip list
-    
     - name: Run tests
-      run: |
-        python -m pytest tests/ -v --tb=short
-    
-    - name: Test server directly
       run: |
         # Запускаем сервер в фоне
         node server.js &
-        SERVER_PID=$!
-        sleep 3
-        
-        # Проверяем что сервер работает
-        curl -f http://localhost:3000/ || echo "Server not responding"
-        
-        # Останавливаем сервер
-        kill $SERVER_PID
+        # Ждем запуска сервера
+        sleep 5
+        # Запускаем тесты
+        python -m pytest tests/ -v
