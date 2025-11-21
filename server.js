@@ -1,72 +1,62 @@
 const http = require('http');
 
-const server = http.createServer((req, res) => {
-    // Устанавливаем заголовки CORS
+const requestHandler = (req, res) => {
+    // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     
-    if (req.url === '/' || req.url === '/home') {
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+    }
+    
+    console.log(`${req.method} ${req.url}`);
+    
+    if (req.url === '/') {
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         res.end(`
             <!DOCTYPE html>
             <html>
-            <head>
-                <title>Test App</title>
-                <meta charset="utf-8">
-            </head>
+            <head><title>Test App</title></head>
             <body>
-                <h1>Welcome to Test Application</h1>
-                <div id="content">Main Content</div>
-                <button id="test-button">Test Button</button>
+                <h1>Test Application</h1>
+                <div id="content">Content</div>
+                <button id="test-button">Button</button>
             </body>
             </html>
         `);
     } else if (req.url === '/api/data') {
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({
-            status: 'success',
-            data: { message: 'Test data', id: 1 }
-        }));
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ status: 'success', data: { id: 1 } }));
     } else if (req.url === '/api/users') {
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
             users: [
-                { id: 1, name: 'John', email: 'john@test.com' },
-                { id: 2, name: 'Jane', email: 'jane@test.com' }
+                { id: 1, name: 'User1' },
+                { id: 2, name: 'User2' }
             ]
         }));
     } else if (req.url === '/api/login' && req.method === 'POST') {
-        let body = '';
-        req.on('data', chunk => body += chunk.toString());
-        req.on('end', () => {
-            try {
-                const data = JSON.parse(body);
-                if (data.username === 'admin' && data.password === 'password') {
-                    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-                    res.end(JSON.stringify({ status: 'success', token: 'test-token' }));
-                } else {
-                    res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-                    res.end(JSON.stringify({ status: 'error', message: 'Invalid credentials' }));
-                }
-            } catch (e) {
-                res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-                res.end(JSON.stringify({ status: 'error', message: 'Invalid JSON' }));
-            }
-        });
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ status: 'success', token: 'test-token' }));
     } else {
-        res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ status: 'error', message: 'Not found' }));
     }
-});
+};
 
+const server = http.createServer(requestHandler);
 const PORT = 3000;
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`);
+
+server.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
 });
 
-// Graceful shutdown
+// Keep server running
 process.on('SIGINT', () => {
-    console.log('Server shutting down...');
+    console.log('🛑 Server shutting down');
+    server.close();
     process.exit(0);
 });
