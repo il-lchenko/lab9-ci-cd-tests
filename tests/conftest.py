@@ -6,26 +6,37 @@ import os
 
 @pytest.fixture(scope="session", autouse=True)
 def start_server():
-    # Запускаем сервер
-    print("Запускаем тестовый сервер...")
-    server_process = subprocess.Popen(["node", "server.js"])
-    
-    # Даем серверу время на запуск
-    time.sleep(3)
-    
-    # Проверяем что сервер работает
+    # Проверяем, не запущен ли уже сервер
     try:
-        response = requests.get("http://localhost:3000/", timeout=10)
+        response = requests.get("http://localhost:3000/", timeout=2)
         if response.status_code == 200:
-            print("✅ Сервер успешно запущен")
-        else:
-            print("❌ Сервер не отвечает корректно")
-    except Exception as e:
-        print(f"❌ Ошибка подключения к серверу: {e}")
+            print("✅ Сервер уже запущен")
+            yield
+            return
+    except:
+        pass
+    
+    # Запускаем сервер только если он не запущен
+    print("🚀 Запускаем тестовый сервер...")
+    server_process = subprocess.Popen(["node", "../server.js"])
+    
+    # Ждем запуска сервера
+    max_attempts = 10
+    for attempt in range(max_attempts):
+        try:
+            response = requests.get("http://localhost:3000/", timeout=5)
+            if response.status_code == 200:
+                print("✅ Сервер успешно запущен")
+                break
+        except Exception as e:
+            if attempt == max_attempts - 1:
+                print(f"❌ Не удалось запустить сервер: {e}")
+                raise
+            time.sleep(1)
     
     yield
     
     # Останавливаем сервер
-    print("Останавливаем сервер...")
+    print("🛑 Останавливаем сервер...")
     server_process.terminate()
     server_process.wait()
