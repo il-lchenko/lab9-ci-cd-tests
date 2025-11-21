@@ -1,0 +1,16 @@
+{
+  "name": "lab9-ci-cd-tests",
+  "version": "1.0.0",
+  "description": "Лабораторная работа 9 - Интеграция автотестов в CI/CD",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Тесты запускаются через pytest\" && exit 0"
+  },
+  "keywords": ["testing", "ci-cd", "github-actions"],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
